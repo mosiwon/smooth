@@ -62,10 +62,6 @@ class WindowClass(QMainWindow, from_class):
         self.camera.daemon = True
 
         self.image = None
-        
-        self.R_led_edt.setText("0")
-        self.G_led_edt.setText("0")
-        self.B_led_edt.setText("0")
 
         self.connecting_btn.clicked.connect(self.connecting)
         self.camera.update.connect(self.camUpdate)
@@ -87,7 +83,10 @@ class WindowClass(QMainWindow, from_class):
         
         # emotion_edt이 바뀌면
         self.emotion_edt.textChanged.connect(self.emotion_edt_changed)
-
+        
+        self.btnColorPicker.clicked.connect(self.btnColorPicker_clicked)
+        self.btnColorModeFalse.clicked.connect(self.btnColorModeFalse_clicked)
+        self.pickerModeOn = False
         self.camStart()
         
         
@@ -199,63 +198,77 @@ class WindowClass(QMainWindow, from_class):
         if self.emotion_mean == 'Anger':
             self.emotion_edt.setStyleSheet("color: rgb(255, 0, 0);")
             self.emotion_edt.setText("분노")
-            self.R_led_edt.setText("255")
-            self.G_led_edt.setText("0")
-            self.B_led_edt.setText("0")
+            self.colorUpdate(255, 0, 0, 1)
             
         elif self.emotion_mean == 'Contempt':
             self.emotion_edt.setStyleSheet("color: rgb(255, 255, 0);")
             self.emotion_edt.setText("경멸")
-            self.R_led_edt.setText("255")
-            self.G_led_edt.setText("255")
-            self.B_led_edt.setText("0")
+            self.colorUpdate(255, 255, 0, 1)
 
         elif self.emotion_mean == 'Disgust':
             self.emotion_edt.setStyleSheet("color: rgb(0, 128, 0);")
             self.emotion_edt.setText("혐오")
-            self.R_led_edt.setText("0")
-            self.G_led_edt.setText("128")
-            self.B_led_edt.setText("0")
+            self.colorUpdate(0, 128, 0, 1)
 
         elif self.emotion_mean == 'Fear':
             self.emotion_edt.setStyleSheet("color: rgb(0, 0, 255);")
             self.emotion_edt.setText("공포")
-            self.R_led_edt.setText("0")
-            self.G_led_edt.setText("0")
-            self.B_led_edt.setText("255")
+            self.colorUpdate(0, 0, 255, 1)
 
         elif self.emotion_mean == 'Happiness':
             self.emotion_edt.setStyleSheet("color: rgb(255, 192, 203);")
             self.emotion_edt.setText("행복")
-            self.R_led_edt.setText("255")
-            self.G_led_edt.setText("192")
-            self.B_led_edt.setText("203")
+            self.colorUpdate(255, 192, 203, 1)
 
         elif self.emotion_mean == 'Neutral':
             self.emotion_edt.setStyleSheet("color: rgb(128, 128, 128);")
             self.emotion_edt.setText("보통")
-            self.R_led_edt.setText("128")
-            self.G_led_edt.setText("128")
-            self.B_led_edt.setText("128")
+            self.colorUpdate(128, 128, 128, 1)
 
         elif self.emotion_mean == 'Sadness':
             self.emotion_edt.setStyleSheet("color: rgb(0, 255, 255);")
             self.emotion_edt.setText("슬픔")
-            self.R_led_edt.setText("0")
-            self.G_led_edt.setText("255")
-            self.B_led_edt.setText("255")
+            self.colorUpdate(0, 255, 255, 1)
 
         elif self.emotion_mean == 'Surprise':
             self.emotion_edt.setStyleSheet("color: rgb(128, 0, 128);")
             self.emotion_edt.setText("놀람")
-            self.R_led_edt.setText("128")
-            self.G_led_edt.setText("0")
-            self.B_led_edt.setText("128")
+            self.colorUpdate(128, 0, 128, 1)
+            
             
     def emotion_edt_changed(self):
         print('change')
-
-
+        
+    def btnColorPicker_clicked(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.pickerModeOn = True
+            self.btnColorPicker.setStyleSheet("background-color: {}".format(color.name()))
+            r,g,b = color.getRgb()[:3]
+            self.colorUpdate(r,g,b,0)
+            
+    def colorUpdate(self, r, g, b, mode=1):
+        ## colorpickermodeON이 True일때는 colorpicker에서 받은 색상으로 변경
+        ## mode가 1일때 colorpickermodeon이 true라면 pass
+        ## mode가 0일때 colorpickermodeon이 false라면 pass
+        if mode == 1:
+            if self.pickerModeOn:
+                pass
+            else:
+                self.R_led_edt.setText(str(r))
+                self.G_led_edt.setText(str(g))
+                self.B_led_edt.setText(str(b))
+        elif mode == 0:
+            if self.pickerModeOn:
+                self.R_led_edt.setText(str(r))
+                self.G_led_edt.setText(str(g))
+                self.B_led_edt.setText(str(b))
+            else:
+                pass
+            
+    def btnColorModeFalse_clicked(self):
+        self.pickerModeOn = False
+        self.btnColorPicker.setStyleSheet("background-color: rgb(255, 255, 255);")
 
 
 if __name__ == "__main__":

@@ -223,9 +223,9 @@
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>140</y>
-      <width>60</width>
+      <x>60</x>
+      <y>150</y>
+      <width>71</width>
       <height>16</height>
      </rect>
     </property>
@@ -257,6 +257,32 @@
     </property>
     <property name="text">
      <string>Color Set</string>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>205</y>
+      <width>151</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>24</number>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnColorFalse">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>130</y>
+      <width>121</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Emotion color</string>
     </property>
    </widget>
   </widget>
