@@ -304,7 +304,7 @@
    <property name="alignment">
     <set>Qt::AlignCenter</set>
    </property>
-   <widget class="QSlider" name="horizontalSlider">
+   <widget class="QSlider" name="MusicSlider">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -333,7 +333,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="btnMusic">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -343,7 +343,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Set</string>
+     <string>Stop</string>
     </property>
    </widget>
   </widget>
