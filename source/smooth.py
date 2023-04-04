@@ -17,6 +17,7 @@ import mediapipe as mp
 from collections import deque
 from hsemotion_onnx.facial_emotions import HSEmotionRecognizer
 from collections import Counter
+import pygame
 
 # 카메라 쓰레드
 class Camera(QThread):
@@ -77,12 +78,9 @@ class WindowClass(QMainWindow, from_class):
         self.emotion_mean = None
         self.emotion_queue = deque(maxlen=500)
         
-        ## whlie문으로 emotion_queue에 Neutral을 500번 넣어주기
+        ## whlie문으로 emotion_queue에 Neutral을 300번 넣어주기
         while len(self.emotion_queue) < 300:
             self.emotion_queue.append('Neutral')
-        
-        # emotion_edt이 바뀌면
-        self.emotion_edt.textChanged.connect(self.emotion_edt_changed)
         
         self.btnColorPicker.clicked.connect(self.btnColorPicker_clicked)
         self.btnColorFalse.clicked.connect(self.btnColorModeFalse_clicked)
@@ -236,8 +234,6 @@ class WindowClass(QMainWindow, from_class):
             self.colorUpdate(128, 0, 128, 1)
             
             
-    def emotion_edt_changed(self):
-        print('change')
         
     def btnColorPicker_clicked(self):
         color = QColorDialog.getColor()
