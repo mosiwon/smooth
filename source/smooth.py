@@ -75,7 +75,7 @@ class WindowClass(QMainWindow, from_class):
         self.fer = HSEmotionRecognizer(model_name=self.model_name)
         self.recent_scores = deque(maxlen=15)
         self.emotion_mean = None
-        self.emotion_queue = deque(maxlen=1000)
+        self.emotion_queue = deque(maxlen=500)
         
         ## whlie문으로 emotion_queue에 Neutral을 500번 넣어주기
         while len(self.emotion_queue) < 300:
@@ -85,7 +85,7 @@ class WindowClass(QMainWindow, from_class):
         self.emotion_edt.textChanged.connect(self.emotion_edt_changed)
         
         self.btnColorPicker.clicked.connect(self.btnColorPicker_clicked)
-        self.btnColorModeFalse.clicked.connect(self.btnColorModeFalse_clicked)
+        self.btnColorFalse.clicked.connect(self.btnColorModeFalse_clicked)
         self.pickerModeOn = False
         self.camStart()
         
