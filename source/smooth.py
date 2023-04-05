@@ -18,9 +18,7 @@ from collections import deque
 from hsemotion_onnx.facial_emotions import HSEmotionRecognizer
 from collections import Counter
 import pygame
-
-# 카메라 쓰레드
-
+from mutagen.mp3 import MP3
 
 class Camera(QThread):
     update = pyqtSignal()
@@ -84,7 +82,7 @@ class WindowClass(QMainWindow, from_class):
         self.emotion_queue = deque(maxlen=500)
         
         # emotion_edt가 바뀔때 
-        self.emotion_edt.textChanged.connect(self.emotion_edt_changed)
+
 ######### 감정 인식 관련 변수 #########
 ######### 음악 재생 관련 변수 #########
         # whlie문으로 emotion_queue에 Neutral을 300번 넣어주기
@@ -101,13 +99,19 @@ class WindowClass(QMainWindow, from_class):
             self.music_list.append(
                 f'/home/siwon/dev/smooth/data/musicismylife{i}.mp3')
         self.music_timer = None
-        self.MusicSlider.valueChanged.connect(self.MusicSlider_changed)
+
         self.btnMusic.clicked.connect(self.btnMusic_clicked)
         self.musicison = False
+        self.next_music = None
+        self.music = self.music_list[22]
         self.stopped_position = 0
-        self.musicUpdate(1)
+        self.musicUpdate(6)
+        self.play_music()
+        
+######### 음악 재생 관련 변수 #########
         self.camStart()
-
+        
+        
     def getQImage(self, frame):
         height, width, channel = frame.shape
         bytesPerLine = 3 * width
@@ -221,7 +225,6 @@ class WindowClass(QMainWindow, from_class):
             self.colorUpdate(255, 0, 0, 1)
             self.musicUpdate(1)
          
-
         elif self.emotion_mean == 'Contempt':
             self.emotion_edt.setStyleSheet("color: rgb(255, 255, 0);")
             self.emotion_edt.setText("경멸")
@@ -240,8 +243,7 @@ class WindowClass(QMainWindow, from_class):
             self.emotion_edt.setStyleSheet("color: rgb(0, 0, 255);")
             self.emotion_edt.setText("공포")
             self.colorUpdate(0, 0, 255, 1)
-      
-
+            self.musicUpdate(4)
 
         elif self.emotion_mean == 'Happiness':
             self.emotion_edt.setStyleSheet("color: rgb(255, 192, 203);")
@@ -249,13 +251,11 @@ class WindowClass(QMainWindow, from_class):
             self.colorUpdate(255, 192, 203, 1)
             self.musicUpdate(5)
  
-
         elif self.emotion_mean == 'Neutral':
             self.emotion_edt.setStyleSheet("color: rgb(128, 128, 128);")
             self.emotion_edt.setText("보통")
             self.colorUpdate(128, 128, 128, 1)
             self.musicUpdate(6)
-
 
         elif self.emotion_mean == 'Sadness':
             self.emotion_edt.setStyleSheet("color: rgb(0, 255, 255);")
@@ -263,13 +263,11 @@ class WindowClass(QMainWindow, from_class):
             self.colorUpdate(0, 255, 255, 1)
             self.musicUpdate(7)
 
-
         elif self.emotion_mean == 'Surprise':
             self.emotion_edt.setStyleSheet("color: rgb(128, 0, 128);")
             self.emotion_edt.setText("놀람")
             self.colorUpdate(128, 0, 128, 1)
             self.musicUpdate(8)
-
 
     def btnColorPicker_clicked(self):
         color = QColorDialog.getColor()
@@ -306,40 +304,49 @@ class WindowClass(QMainWindow, from_class):
         
     def musicUpdate(self, emotion):
         if emotion == 1:
-            self.music = self.music_list[0]
+            self.next_music = self.music_list[0]
         elif emotion == 2:
-            self.music = self.music_list[1]
+            self.next_music = self.music_list[1]
         elif emotion == 3:
-            self.music = self.music_list[2]
+            self.next_music = self.music_list[2]
         elif emotion == 4:
-            self.music = self.music_list[3]
+            self.next_music = self.music_list[3]
         elif emotion == 5:
-            self.music = self.music_list[4]
+            self.next_music = self.music_list[4]
         elif emotion == 6:
-            self.music = self.music_list[5]
+            self.next_music = self.music_list[5]
         elif emotion == 7:
-            self.music = self.music_list[6]
+            self.next_music = self.music_list[6]
         elif emotion == 8:
-            self.music = self.music_list[7]
+            self.next_music = self.music_list[7]
         else:
-            self.music = self.music_list[8]
+            self.next_music = self.music_list[8]
             
 
     def update_MusicSlider(self):
         # Get the current position of the music playback
         current_position = pygame.mixer.music.get_pos() // 1000  # Convert to seconds
-
         # Update the slider's value
         self.MusicSlider.setValue(current_position)
-
-        # If the music has stopped playing, stop the timer
+        # If the music has stopped playing, stop the timer and play the next music
         if not pygame.mixer.music.get_busy():
             self.music_timer.stop()
+            self.music = self.next_music
+            self.play_music(self.music)
 
 
-    def play_music(self):
+
+    def play_music(self, music=None):
+        if music is None:
+            music = self.music
+
         pygame.mixer.init()
-        pygame.mixer.music.load(self.music)
+        sound = pygame.mixer.Sound(music)  # Create a Sound object
+        length = sound.get_length() // 1000  # Get the length of the music in seconds
+        self.MusicSlider.setMaximum(length)  # Set the maximum value of the slider
+        print("Playing music: {}".format(music))
+        print("Music length: {} seconds".format(length))
+        pygame.mixer.music.load(music)
         pygame.mixer.music.play()
 
         # Stop the previous timer if it exists
@@ -351,22 +358,12 @@ class WindowClass(QMainWindow, from_class):
         self.music_timer.timeout.connect(self.update_MusicSlider)
         self.music_timer.start(1000)  # Update every 1000 ms
 
-    def MusicSlider_changed(self, value):
-        # Check if the music is playing
-        if pygame.mixer.music.get_busy():
-            # Pause the music
-            pygame.mixer.music.pause()
 
-            # Set the new position based on the slider's value
-            pygame.mixer.music.set_pos(value)
-
-            # Resume playing the music
-            pygame.mixer.music.unpause()
          
     def btnMusic_clicked(self):
         self.musicison = not self.musicison
         if self.musicison:
-            pygame.mixer.music.stop()
+            pygame.mixer.music.pause()  # Change this line
             self.stopped_position = pygame.mixer.music.get_pos() // 1000
             self.music_timer.stop()
             self.btnMusic.setText("Play")
@@ -374,11 +371,9 @@ class WindowClass(QMainWindow, from_class):
             self.play_music()
             pygame.mixer.music.set_pos(self.stopped_position)
             self.btnMusic.setText("Stop")
+            
 
-            
-            
-    def emotion_edt_changed(self):
-        self.play_music()
+
 
 
 
