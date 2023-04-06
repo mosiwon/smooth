@@ -39,7 +39,7 @@ class Camera(QThread):
         self.running = False
 
 
-from_class = uic.loadUiType("/home/siwon/dev/smooth/layout/smooth.ui")[0]
+from_class = uic.loadUiType("/Users/kks/git_ws/smooth_projcet/smooth/layout/smooth.ui")[0]
 
 
 class WindowClass(QMainWindow, from_class):
@@ -47,6 +47,7 @@ class WindowClass(QMainWindow, from_class):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("Smart Moodlight Speaker")
+
 ######### esp 연결 관련 변수 #########   
         self.connect = False
         self.cam = False
@@ -99,7 +100,7 @@ class WindowClass(QMainWindow, from_class):
         self.music_list = []
         for i in range(1, 31):
             self.music_list.append(
-                f'/home/siwon/dev/smooth/data/musicismylife{i}.mp3')
+                f'/Users/kks/git_ws/smooth_projcet/smooth/data/musicismylife{i}.mp3')
         self.music_timer = None
         self.MusicSlider.valueChanged.connect(self.MusicSlider_changed)
         self.btnMusic.clicked.connect(self.btnMusic_clicked)
@@ -119,10 +120,12 @@ class WindowClass(QMainWindow, from_class):
         # 연결O
         if self.connect == False:
             # ip, port 연결
-            # ip = self.ip_edt.text()
-            # port = self.port_edt.text()
-            # self.sock = socket.socket()
-            # self.sock.connect((ip, int(port)))
+            #########################
+            ip = self.ip_edt.text()
+            port = self.port_edt.text()
+            self.sock = socket.socket()
+            self.sock.connect((ip, int(port)))
+            #########################
 
             self.connect = True
             self.cam = True
@@ -136,7 +139,7 @@ class WindowClass(QMainWindow, from_class):
             self.cam = False
             self.connecting_btn.setText("Connecting")
             self.cam_label.setText("Cam Off")
-            # self.sock.close()
+            self.sock.close()
 
             self.camStop()
 
@@ -254,6 +257,7 @@ class WindowClass(QMainWindow, from_class):
             self.emotion_edt.setStyleSheet("color: rgb(128, 128, 128);")
             self.emotion_edt.setText("보통")
             self.colorUpdate(128, 128, 128, 1)
+
             self.musicUpdate(6)
 
 
@@ -291,13 +295,22 @@ class WindowClass(QMainWindow, from_class):
                 self.R_led_edt.setText(str(r))
                 self.G_led_edt.setText(str(g))
                 self.B_led_edt.setText(str(b))
+                self.sendRGB(r, g, b)
         elif mode == 0:
             if self.pickerModeOn:
                 self.R_led_edt.setText(str(r))
                 self.G_led_edt.setText(str(g))
                 self.B_led_edt.setText(str(b))
+                self.sendRGB(r, g, b)
             else:
                 pass
+
+    def sendRGB(self, r, g, b):
+        color_str = "R{}G{}B{}".format(r, g, b)
+        # 서버에 color_str 전송
+        self.sock.send(color_str.encode())
+        print('send: {}'.format(color_str))
+
 
     def btnColorModeFalse_clicked(self):
         self.pickerModeOn = False
