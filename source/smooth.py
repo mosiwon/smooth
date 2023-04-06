@@ -20,6 +20,7 @@ from collections import Counter
 import pygame
 from mutagen.mp3 import MP3
 
+
 class Camera(QThread):
     update = pyqtSignal()
 
@@ -107,7 +108,10 @@ class WindowClass(QMainWindow, from_class):
         self.stopped_position = 0
         self.musicUpdate(6)
         self.play_music()
-        
+        self.user_moving = False
+        self.MusicSlider.sliderPressed.connect(self.slider_pressed)
+        self.MusicSlider.sliderReleased.connect(self.slider_released)
+        self.current_position = 0
 ######### 음악 재생 관련 변수 #########
         self.camStart()
         
@@ -324,15 +328,17 @@ class WindowClass(QMainWindow, from_class):
             
 
     def update_MusicSlider(self):
-        # Get the current position of the music playback
-        current_position = pygame.mixer.music.get_pos() // 1000  # Convert to seconds
-        # Update the slider's value
-        self.MusicSlider.setValue(current_position)
+        if not self.user_moving:
+            # Update the slider's value
+            self.MusicSlider.setValue(self.current_position)
+
         # If the music has stopped playing, stop the timer and play the next music
         if not pygame.mixer.music.get_busy():
             self.music_timer.stop()
             self.music = self.next_music
             self.play_music(self.music)
+            #
+
 
 
 
@@ -341,11 +347,12 @@ class WindowClass(QMainWindow, from_class):
             music = self.music
 
         pygame.mixer.init()
-        sound = pygame.mixer.Sound(music)  # Create a Sound object
-        length = sound.get_length() // 1000  # Get the length of the music in seconds
+        audio = MP3(music)
+        length = int(audio.info.length)  # Get the length of the music in seconds
         self.MusicSlider.setMaximum(length)  # Set the maximum value of the slider
         print("Playing music: {}".format(music))
         print("Music length: {} seconds".format(length))
+        
         pygame.mixer.music.load(music)
         pygame.mixer.music.play()
 
@@ -358,8 +365,6 @@ class WindowClass(QMainWindow, from_class):
         self.music_timer.timeout.connect(self.update_MusicSlider)
         self.music_timer.start(1000)  # Update every 1000 ms
 
-
-         
     def btnMusic_clicked(self):
         self.musicison = not self.musicison
         if self.musicison:
@@ -372,6 +377,15 @@ class WindowClass(QMainWindow, from_class):
             pygame.mixer.music.set_pos(self.stopped_position)
             self.btnMusic.setText("Stop")
             
+    def slider_pressed(self):
+        self.user_moving = True
+
+    def slider_released(self):
+        self.user_moving = False
+        self.current_position = self.MusicSlider.value()
+        pygame.mixer.music.set_pos(self.current_position)
+        self.update_MusicSlider()
+
 
 
 
