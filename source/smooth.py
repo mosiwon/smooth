@@ -46,7 +46,7 @@ class WindowClass(QMainWindow, from_class):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("Smart Moodlight Speaker")
-######### esp 연결 관련 변수 #########   
+######### esp 연결 관련 변수 #########
         self.connect = False
         self.cam = False
 
@@ -67,7 +67,7 @@ class WindowClass(QMainWindow, from_class):
 
         self.connecting_btn.clicked.connect(self.connecting)
         self.camera.update.connect(self.camUpdate)
-######### esp 연결 관련 변수 #########        
+######### esp 연결 관련 변수 #########
 ######### 감정 인식 관련 변수 #########
         self.emotion_mean = 'Neutral'
         # Emotion Recognition
@@ -81,9 +81,10 @@ class WindowClass(QMainWindow, from_class):
         self.recent_scores = deque(maxlen=15)
         self.emotion_mean = None
         self.emotion_queue = deque(maxlen=500)
-        
-        # emotion_edt가 바뀔때 
 
+        # emotion_edt가 바뀔때
+        self.emotion_edt.setText("보통")
+        self.emotion_edt.textChanged.connect(self.emotion_edt_changed)
 ######### 감정 인식 관련 변수 #########
 ######### 음악 재생 관련 변수 #########
         # whlie문으로 emotion_queue에 Neutral을 300번 넣어주기
@@ -103,44 +104,45 @@ class WindowClass(QMainWindow, from_class):
         self.neutral_music_list = []
         self.sad_music_list = []
         self.surprise_music_list = []
-        
+
         for i in range(1, 5):
             self.angry_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/1{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/0/{i}.mp3"))
             self.contempt_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/2/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/1/{i}.mp3"))
             self.disgust_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/3/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/2/{i}.mp3"))
             self.fear_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/4/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/3/{i}.mp3"))
             self.happy_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/5/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/4/{i}.mp3"))
             self.neutral_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/6/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/5/{i}.mp3"))
             self.sad_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/7/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/6/{i}.mp3"))
             self.surprise_music_list.append(
-                (f"/home/siwon/dev/smooth/data/music/8/{i}.mp3"))
+                (f"/home/siwon/dev/smooth/data/music/7/{i}.mp3"))
 
-        print(self.angry_music_list)
         self.music_timer = None
 
         self.btnMusic.clicked.connect(self.btnMusic_clicked)
         self.musicison = False
-        self.next_music = None
-        self.music = self.neutral_music_list[0]
+        self.music_list = self.neutral_music_list
+        self.music_index = 0
+        self.music = self.music_list[self.music_index]
         self.stopped_position = 0
-        self.musicUpdate(2)
-        self.play_music()
-        self.user_moving = False
         self.current_position = 0
-        
-        ## 슬라이더 못 움직이게 하기
+        self.emotion_music_list = self.neutral_music_list
+        # 슬라이더 못 움직이게 하기
         self.MusicSlider.setDisabled(True)
+        self.btnNextMusic.clicked.connect(self.btnNextMusic_clicked)
+        self.btnPreviousMusic.clicked.connect(self.btnPreviousMusic_clicked)
+        self.btnGoMusic.clicked.connect(self.btnGoMusic_clicked)
+        self.btnBackMusic.clicked.connect(self.btnBackMusic_clicked)
 ######### 음악 재생 관련 변수 #########
         self.camStart()
-        
-        
+        self.play_music()
+
     def getQImage(self, frame):
         height, width, channel = frame.shape
         bytesPerLine = 3 * width
@@ -162,6 +164,8 @@ class WindowClass(QMainWindow, from_class):
             self.connecting_btn.setText("Disconnecting")
             self.cam_label.setText("Cam On")
             self.camStart()
+            self.musicison = True
+            self.btnMusic_clicked()
 
         # 연결X
         else:
@@ -170,8 +174,9 @@ class WindowClass(QMainWindow, from_class):
             self.connecting_btn.setText("Connecting")
             self.cam_label.setText("Cam Off")
             # self.sock.close()
-
             self.camStop()
+            self.musicison = False
+            self.btnMusic_clicked()
 
     def camStart(self):
         self.cam_thread = Camera()
@@ -250,53 +255,51 @@ class WindowClass(QMainWindow, from_class):
         # emotion_mean에 따라 R,G,B 변경
         if self.emotion_mean == 'Anger':
             self.emotion_edt.setStyleSheet("color: rgb(255, 0, 0);")
-            self.emotion_edt.setText("분노")
             self.colorUpdate(255, 0, 0, 1)
-            self.musicUpdate(1)
-         
+            self.musicUpdate(0)
+            self.emotion_edt.setText("분노")
+
         elif self.emotion_mean == 'Contempt':
             self.emotion_edt.setStyleSheet("color: rgb(255, 255, 0);")
-            self.emotion_edt.setText("경멸")
             self.colorUpdate(255, 255, 0, 1)
-            self.musicUpdate(2)
-         
+            self.musicUpdate(1)
+            self.emotion_edt.setText("경멸")
 
         elif self.emotion_mean == 'Disgust':
             self.emotion_edt.setStyleSheet("color: rgb(0, 128, 0);")
-            self.emotion_edt.setText("혐오")
             self.colorUpdate(0, 128, 0, 1)
-            self.musicUpdate(3)
-          
+            self.musicUpdate(2)
+            self.emotion_edt.setText("혐오")
 
         elif self.emotion_mean == 'Fear':
             self.emotion_edt.setStyleSheet("color: rgb(0, 0, 255);")
-            self.emotion_edt.setText("공포")
             self.colorUpdate(0, 0, 255, 1)
-            self.musicUpdate(4)
+            self.musicUpdate(3)
+            self.emotion_edt.setText("공포")
 
         elif self.emotion_mean == 'Happiness':
             self.emotion_edt.setStyleSheet("color: rgb(255, 192, 203);")
-            self.emotion_edt.setText("행복")
             self.colorUpdate(255, 192, 203, 1)
-            self.musicUpdate(5)
- 
+            self.musicUpdate(4)
+            self.emotion_edt.setText("행복")
+
         elif self.emotion_mean == 'Neutral':
             self.emotion_edt.setStyleSheet("color: rgb(128, 128, 128);")
-            self.emotion_edt.setText("보통")
             self.colorUpdate(128, 128, 128, 1)
-            self.musicUpdate(6)
+            self.musicUpdate(5)
+            self.emotion_edt.setText("보통")
 
         elif self.emotion_mean == 'Sadness':
             self.emotion_edt.setStyleSheet("color: rgb(0, 255, 255);")
-            self.emotion_edt.setText("슬픔")
             self.colorUpdate(0, 255, 255, 1)
-            self.musicUpdate(7)
+            self.musicUpdate(6)
+            self.emotion_edt.setText("슬픔")
 
         elif self.emotion_mean == 'Surprise':
             self.emotion_edt.setStyleSheet("color: rgb(128, 0, 128);")
-            self.emotion_edt.setText("놀람")
             self.colorUpdate(128, 0, 128, 1)
-            self.musicUpdate(8)
+            self.musicUpdate(7)
+            self.emotion_edt.setText("놀람")
 
     def btnColorPicker_clicked(self):
         color = QColorDialog.getColor()
@@ -330,53 +333,44 @@ class WindowClass(QMainWindow, from_class):
         self.pickerModeOn = False
         self.btnColorPicker.setStyleSheet(
             "background-color: rgb(255, 255, 255);")
-        
-    def musicUpdate(self, emotion):
-        if emotion == 1: # 분노
-            self.next_music_list = self.angry_music_list
-        elif emotion == 2: # 경멸
-            self.next_music_list = self.contempt_music_list
-        elif emotion == 3: # 혐오
-            self.next_music_list = self.disgust_music_list
-        elif emotion == 4: # 공포
-            self.next_music_list = self.fear_music_list
-        elif emotion == 5: # 행복
-            self.next_music_list = self.happy_music_list
-        elif emotion == 6: # 보통
-            self.next_music_list = self.neutral_music_list
-        elif emotion == 7: # 슬픔
-            self.next_music_list = self.sad_music_list
-        elif emotion == 8: # 놀람
-            self.next_music_list = self.surprise_music_list
-        else: # 예외처리
-            self.next_music_list = self.neutral_music_list
-        
-        self.emotionMusicUpdate()
-        
-    def emotionMusicUpdate(self):
-        if self.music == self.next_music_list[0]:
-            self.next_music = self.next_music_list[1]
-        elif self.music == self.next_music_list[1]:
-            self.next_music = self.next_music_list[2]
-        elif self.music == self.next_music_list[2]:
-            self.next_music = self.next_music_list[3]
-        else:
-            self.next_music = self.next_music_list[0]
-        
-        
-        
-        
 
+    def musicUpdate(self, emotion):
+        if emotion == 0:  # 분노
+            self.emotion_music_list = self.angry_music_list
+        elif emotion == 1:  # 경멸
+            self.emotion_music_list = self.contempt_music_list
+        elif emotion == 2:  # 혐오
+            self.emotion_music_list = self.disgust_music_list
+        elif emotion == 3:  # 공포
+            self.emotion_music_list = self.fear_music_list
+        elif emotion == 4:  # 행복
+            self.emotion_music_list = self.happy_music_list
+        elif emotion == 5:  # 보통
+            self.emotion_music_list = self.neutral_music_list
+        elif emotion == 6:  # 슬픔
+            self.emotion_music_list = self.sad_music_list
+        elif emotion == 7:  # 놀람
+            self.emotion_music_list = self.surprise_music_list
+        else:  # 예외처리
+            self.emotion_music_list = self.neutral_music_list
+
+    def emotion_edt_changed(self):
+        # self.music_list에서 현재 음악 인덱스+1부터 전부 삭제
+        for i in range(self.music_index+1, len(self.music_list)):
+            self.music_list.pop()
+        # self.emotion_music_list를 self.music_list에 추가
+        for i in range(len(self.emotion_music_list)):
+            self.music_list.append(self.emotion_music_list[i])
+        # 다음곡 재생
+        self.btnNextMusic_clicked()
 
     def update_MusicSlider(self):
-        if not self.user_moving:
-            # If the music is playing, update the current position
-            if pygame.mixer.music.get_busy():
-                self.current_position += 1
-
-            # Update the slider's value
-            self.MusicSlider.setValue(self.current_position)
-            print("Current position: {} seconds".format(self.current_position))
+        # If the music is playing, update the current position
+        if pygame.mixer.music.get_busy():
+            self.current_position += 1
+        # Update the slider's value
+        self.MusicSlider.setValue(self.current_position)
+        # print("Current position: {} seconds".format(self.current_position))
 
         # If the music has stopped playing, stop the timer and play the next music
         if not pygame.mixer.music.get_busy():
@@ -384,28 +378,38 @@ class WindowClass(QMainWindow, from_class):
             self.music = self.next_music
             self.play_music(self.music)
 
-
     def play_music(self, music=None, start_position=0):
         if music is None:
             music = self.music
 
         pygame.mixer.init()
         audio = MP3(music)
-        length = int(audio.info.length)  
-        self.MusicSlider.setMaximum(length)  
-        print("Playing music: {}".format(music))
+        length = int(audio.info.length)
+        self.MusicSlider.setMaximum(length)
         self.music_edt.setText(music)
-        print("Music length: {} seconds".format(length))
-        
         pygame.mixer.music.load(music)
-        pygame.mixer.music.play(start = start_position)
+
+        # 서서히 페이드인하는 코드 추가
+        pygame.mixer.music.set_volume(0)
+        pygame.mixer.music.play(start=start_position)
+
+        for i in range(10):
+            pygame.mixer.music.set_volume((i + 1) / 10)
+            time.sleep(0.1)
+        pygame.mixer.music.set_volume(1)
 
         if self.music_timer is not None:
             self.music_timer.stop()
 
         self.music_timer = QTimer()
         self.music_timer.timeout.connect(self.update_MusicSlider)
-        self.music_timer.start(1000)  
+        self.music_timer.start(1000)
+        print('--------------------------')
+        for i in range(len(self.music_list)):
+            if i == self.music_index:
+                print(self.music_list[i] + " (현재 재생중)")
+            else:
+                print(self.music_list[i])
 
     def btnMusic_clicked(self):
         self.musicison = not self.musicison
@@ -420,21 +424,31 @@ class WindowClass(QMainWindow, from_class):
             self.btnMusic.setText("Stop")
             self.music_timer.start(1000)
 
+    def btnNextMusic_clicked(self):
+        # 인덱스를 이용한 다음곡 재생
+        self.music_index += 1
+        self.music = self.music_list[self.music_index]
+        self.current_position = 0
+        self.play_music()
 
+    def btnPreviousMusic_clicked(self):
+        # 인덱스를 이용한 이전곡 재생
+        self.music_index -= 1
+        self.music = self.music_list[self.music_index]
+        self.current_position = 0
+        self.play_music()
 
+    def btnGoMusic_clicked(self):
+        # 5초 앞으로 이동
+        self.current_position += 15
+        self.play_music(start_position=self.current_position)
 
-            
-    def slider_pressed(self):
-        self.user_moving = True
-
-    def slider_released(self):
-        self.user_moving = False
-        self.current_position = self.MusicSlider.value()
-        pygame.mixer.music.set_pos(self.current_position)
-        self.update_MusicSlider()
-
-
-
+    def btnBackMusic_clicked(self):
+        # 5초 뒤로 이동
+        self.current_position -= 15
+        if self.current_position < 0:
+            self.current_position = 0
+        self.play_music(start_position=self.current_position)
 
 
 if __name__ == "__main__":
