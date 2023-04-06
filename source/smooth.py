@@ -132,6 +132,7 @@ class WindowClass(QMainWindow, from_class):
             self.connecting_btn.setText("Disconnecting")
             self.cam_label.setText("Cam On")
             self.camStart()
+            self.format = Struct('@ii')
 
         # 연결X
         else:
@@ -307,8 +308,8 @@ class WindowClass(QMainWindow, from_class):
 
     def sendRGB(self, r, g, b):
         color_str = "R{}G{}B{}".format(r, g, b)
-        # 서버에 color_str 전송
-        self.sock.send(color_str.encode())
+        color_bytes = color_str.encode('ascii') # 문자열을 바이트 형태로 변환
+        self.sock.send(color_bytes)
         print('send: {}'.format(color_str))
 
 
@@ -392,8 +393,6 @@ class WindowClass(QMainWindow, from_class):
             
     def emotion_edt_changed(self):
         self.play_music()
-
-
 
 
 if __name__ == "__main__":
