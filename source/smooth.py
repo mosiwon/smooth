@@ -94,11 +94,35 @@ class WindowClass(QMainWindow, from_class):
         self.btnColorFalse.clicked.connect(self.btnColorModeFalse_clicked)
         self.pickerModeOn = False
 
-        # 음악(30개) (파일이름:musicismylife1~30)불러오기
-        self.music_list = []
-        for i in range(1, 31):
-            self.music_list.append(
-                f'/home/siwon/dev/smooth/data/musicismylife{i}.mp3')
+        # 음악(각 감정(8개) 별로 4개) (mp3))불러오기(각 리스트별로 만듬)
+        self.angry_music_list = []
+        self.contempt_music_list = []
+        self.disgust_music_list = []
+        self.fear_music_list = []
+        self.happy_music_list = []
+        self.neutral_music_list = []
+        self.sad_music_list = []
+        self.surprise_music_list = []
+        
+        for i in range(0, 4):
+            self.angry_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/1/{i}.mp3"))
+            self.contempt_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/2/{i}.mp3"))
+            self.disgust_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/3/{i}.mp3"))
+            self.fear_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/4/{i}.mp3"))
+            self.happy_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/5/{i}.mp3"))
+            self.neutral_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/6/{i}.mp3"))
+            self.sad_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/7/{i}.mp3"))
+            self.surprise_music_list.append(
+                pygame.mixer.Sound(f"/home/siwon/dev/smooth/music/8/{i}.mp3"))
+        
+        print(self.angry_music_list)
         self.music_timer = None
 
         self.btnMusic.clicked.connect(self.btnMusic_clicked)
@@ -106,12 +130,16 @@ class WindowClass(QMainWindow, from_class):
         self.next_music = None
         self.music = self.music_list[22]
         self.stopped_position = 0
-        self.musicUpdate(6)
+        self.musicUpdate(2)
         self.play_music()
         self.user_moving = False
+        self.current_position = 0
+        
+        ## 슬라이더##
         self.MusicSlider.sliderPressed.connect(self.slider_pressed)
         self.MusicSlider.sliderReleased.connect(self.slider_released)
-        self.current_position = 0
+        ## 슬라이더 못 움직이게 하기
+        self.MusicSlider.setDisabled(True)
 ######### 음악 재생 관련 변수 #########
         self.camStart()
         
@@ -325,22 +353,34 @@ class WindowClass(QMainWindow, from_class):
             self.next_music = self.music_list[7]
         else:
             self.next_music = self.music_list[8]
-            
+
+    def btnMusic_clicked(self):
+        self.musicison = not self.musicison
+        if self.musicison:
+            pygame.mixer.music.pause()  # Change this line
+            self.stopped_position = pygame.mixer.music.get_pos() // 1000
+            self.music_timer.stop()
+            self.btnMusic.setText("Play")
+        else:
+            self.musicison = False
+            self.play_music()
+            pygame.mixer.music.set_pos(self.stopped_position)
 
     def update_MusicSlider(self):
+        # Get the current position of the music playback
+        current_position = pygame.mixer.music.get_pos() // 1000  # Convert to seconds
+
+        # Only update the slider's value if the user is not moving it
         if not self.user_moving:
-            # Update the slider's value
-            self.MusicSlider.setValue(self.current_position)
+            self.MusicSlider.setValue(current_position)
 
         # If the music has stopped playing, stop the timer and play the next music
         if not pygame.mixer.music.get_busy():
             self.music_timer.stop()
             self.music = self.next_music
             self.play_music(self.music)
-            #
-
-
-
+            
+        
 
     def play_music(self, music=None):
         if music is None:
@@ -384,11 +424,8 @@ class WindowClass(QMainWindow, from_class):
         self.user_moving = False
         self.current_position = self.MusicSlider.value()
         pygame.mixer.music.set_pos(self.current_position)
+        self.MusicSlider.setValue(self.current_position)  # Add this line
         self.update_MusicSlider()
-
-
-
-
 
 
 
