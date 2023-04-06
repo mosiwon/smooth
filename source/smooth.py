@@ -37,6 +37,29 @@ class Camera(QThread):
     def stop(self):
         self.running = False
 
+class ColorUpdateThread(QThread):
+    def __init__(self, r, g, b, r_led_edt, g_led_edt, b_led_edt):
+        self.r = r
+        self.g = g
+        self.b = b
+        self.r_led_edt = r_led_edt
+        self.g_led_edt = g_led_edt
+        self.b_led_edt = b_led_edt
+        super().__init__()
+
+    def run(self):
+        current_r, current_g, current_b = int(self.r_led_edt.text()), int(self.g_led_edt.text()), int(self.b_led_edt.text())
+        for i in range(10):
+            new_r = current_r + int((self.r - current_r) * (i + 1) / 10)
+            new_g = current_g + int((self.g - current_g) * (i + 1) / 10)
+            new_b = current_b + int((self.b - current_b) * (i + 1) / 10)
+            self.r_led_edt.setText(str(new_r))
+            self.g_led_edt.setText(str(new_g))
+            self.b_led_edt.setText(str(new_b))
+            time.sleep(0.1)
+        self.r_led_edt.setText(str(self.r))
+        self.g_led_edt.setText(str(self.g))
+        self.b_led_edt.setText(str(self.b))
 
 from_class = uic.loadUiType("/home/siwon/dev/smooth/layout/smooth.ui")[0]
 
@@ -68,6 +91,12 @@ class WindowClass(QMainWindow, from_class):
         self.connecting_btn.clicked.connect(self.connecting)
         self.camera.update.connect(self.camUpdate)
 ######### esp 연결 관련 변수 #########
+######### 색상 관련 변수 #########        
+        self.R_led_edt.setText("0")
+        self.G_led_edt.setText("0")
+        self.B_led_edt.setText("0")
+        self.color_update_thread = None
+######### 색상 관련 변수 #########
 ######### 감정 인식 관련 변수 #########
         self.emotion_mean = 'Neutral'
         # Emotion Recognition
@@ -140,8 +169,6 @@ class WindowClass(QMainWindow, from_class):
         self.btnGoMusic.clicked.connect(self.btnGoMusic_clicked)
         self.btnBackMusic.clicked.connect(self.btnBackMusic_clicked)
 ######### 음악 재생 관련 변수 #########
-        self.camStart()
-        self.play_music()
 
     def getQImage(self, frame):
         height, width, channel = frame.shape
@@ -158,7 +185,6 @@ class WindowClass(QMainWindow, from_class):
             # port = self.port_edt.text()
             # self.sock = socket.socket()
             # self.sock.connect((ip, int(port)))
-
             self.connect = True
             self.cam = True
             self.connecting_btn.setText("Disconnecting")
@@ -166,7 +192,6 @@ class WindowClass(QMainWindow, from_class):
             self.camStart()
             self.musicison = True
             self.btnMusic_clicked()
-
         # 연결X
         else:
             self.connect = False
@@ -311,28 +336,20 @@ class WindowClass(QMainWindow, from_class):
             self.colorUpdate(r, g, b, 0)
 
     def colorUpdate(self, r, g, b, mode=1):
-        # colorpickermodeON이 True일때는 colorpicker에서 받은 색상으로 변경
-        # mode가 1일때 colorpickermodeon이 true라면 pass
-        # mode가 0일때 colorpickermodeon이 false라면 pass
         if mode == 1:
             if self.pickerModeOn:
                 pass
             else:
-                self.R_led_edt.setText(str(r))
-                self.G_led_edt.setText(str(g))
-                self.B_led_edt.setText(str(b))
+                pass
         elif mode == 0:
             if self.pickerModeOn:
-                self.R_led_edt.setText(str(r))
-                self.G_led_edt.setText(str(g))
-                self.B_led_edt.setText(str(b))
+                self.color_update_thread = ColorUpdateThread(r, g, b, self.R_led_edt, self.G_led_edt, self.B_led_edt)
+                self.color_update_thread.start()
             else:
                 pass
 
     def btnColorModeFalse_clicked(self):
         self.pickerModeOn = False
-        self.btnColorPicker.setStyleSheet(
-            "background-color: rgb(255, 255, 255);")
 
     def musicUpdate(self, emotion):
         if emotion == 0:  # 분노
@@ -362,7 +379,15 @@ class WindowClass(QMainWindow, from_class):
         for i in range(len(self.emotion_music_list)):
             self.music_list.append(self.emotion_music_list[i])
         # 다음곡 재생
+        
+        pygame.mixer.music.fadeout(4000)  # Fade out for 2 seconds
+        
+        r, g, b = self.get_emotion_color()
+        self.color_update_thread = ColorUpdateThread(r, g, b, self.R_led_edt, self.G_led_edt, self.B_led_edt)
+        self.color_update_thread.start()
+        
         self.btnNextMusic_clicked()
+
 
     def update_MusicSlider(self):
         # If the music is playing, update the current position
@@ -393,9 +418,9 @@ class WindowClass(QMainWindow, from_class):
         pygame.mixer.music.set_volume(0)
         pygame.mixer.music.play(start=start_position)
 
-        for i in range(10):
-            pygame.mixer.music.set_volume((i + 1) / 10)
-            time.sleep(0.1)
+        for i in range(20):
+            pygame.mixer.music.set_volume(i / 20)
+            time.sleep(0.05)
         pygame.mixer.music.set_volume(1)
 
         if self.music_timer is not None:
@@ -410,6 +435,7 @@ class WindowClass(QMainWindow, from_class):
                 print(self.music_list[i] + " (현재 재생중)")
             else:
                 print(self.music_list[i])
+
 
     def btnMusic_clicked(self):
         self.musicison = not self.musicison
