@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>30</y>
+     <y>10</y>
      <width>191</width>
      <height>181</height>
     </rect>
@@ -74,7 +74,7 @@
      <string>Port</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="connecting_btn">
+   <widget class="QPushButton" name="conection_btn">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -84,7 +84,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Connecting</string>
+     <string>Conection</string>
     </property>
    </widget>
   </widget>
@@ -92,9 +92,9 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>230</y>
+     <y>200</y>
      <width>191</width>
-     <height>211</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="title">
@@ -251,9 +251,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>30</y>
+     <y>20</y>
      <width>401</width>
-     <height>411</height>
+     <height>391</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -263,17 +263,17 @@
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="cam_label">
+  <widget class="QPushButton" name="cam_btn">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>101</width>
-     <height>16</height>
+     <x>150</x>
+     <y>430</y>
+     <width>113</width>
+     <height>32</height>
     </rect>
    </property>
    <property name="text">
-    <string>Cam Off</string>
+    <string>Cam</string>
    </property>
   </widget>
  </widget>
