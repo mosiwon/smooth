@@ -1,21 +1,25 @@
 import sys
-import time
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6 import uic
+from PyQt6.QtCore import QRegularExpression
 import socket
+import time
+from PyQt6.QtCore import *
+import time
+from struct import *
+import datetime
 import cv2
-import numpy as np
 import imutils
+from datetime import datetime
+import numpy as np
 import mediapipe as mp
+from collections import deque
+from hsemotion_onnx.facial_emotions import HSEmotionRecognizer
+from collections import Counter
 import pygame
 from mutagen.mp3 import MP3
-from struct import Struct
-from collections import deque, Counter
-from datetime import datetime
-from PyQt6.QtCore import QRegularExpression, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QPixmap, QImage, QColorDialog, QRegularExpressionValidator
-from PyQt6.QtWidgets import QMainWindow, QIntValidator
-from PyQt6 import uic
-from hsemotion_onnx.facial_emotions import HSEmotionRecognizer
-
+import struct
 
 
 class Camera(QThread):
@@ -34,9 +38,7 @@ class Camera(QThread):
     def stop(self):
         self.running = False
 
-
 from_class = uic.loadUiType("/home/siwon/dev/smooth/layout/smooth.ui")[0]
-
 
 class WindowClass(QMainWindow, from_class):
     def __init__(self):
@@ -47,13 +49,12 @@ class WindowClass(QMainWindow, from_class):
         self.init_emotion_recognition()
         self.init_music_player()
         self.init_connections()
-
+    
     def init_variables(self):
         self.connect = False
         self.cam = False
         ip_range = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"
-        ipRegex = QRegularExpression(
-            "^" + ip_range + "\\." + ip_range + "\\." + ip_range + "\\." + ip_range + "$")
+        ipRegex = QRegularExpression("^" + ip_range + "\\." + ip_range + "\\." + ip_range + "\\." + ip_range + "$")
         self.ip_edt.setValidator(QRegularExpressionValidator(ipRegex, self))
         self.port_edt.setValidator(QIntValidator())
         self.port_edt.setText("80")
@@ -61,6 +62,7 @@ class WindowClass(QMainWindow, from_class):
         self.camera = Camera(self)
         self.camera.daemon = True
         self.image = None
+        self.selected_color = None
 
     def init_emotion_recognition(self):
         self.emotion_mean = 'Neutral'
@@ -76,13 +78,13 @@ class WindowClass(QMainWindow, from_class):
         self.emotion_queue = deque(maxlen=500)
 
         self.emotion_edt.setText("보통")
-
+        
     def init_music_player(self):
         while len(self.emotion_queue) < 300:
             self.emotion_queue.append('Neutral')
 
         self.pickerModeOn = False
-        self.format = struct.Struct("BBB")
+        self.format = struct.Struct("BBBB")
         self.angry_music_list = []
         self.contempt_music_list = []
         self.disgust_music_list = []
@@ -109,9 +111,8 @@ class WindowClass(QMainWindow, from_class):
                 (f"/home/siwon/dev/smooth/data/music/6/{i}.mp3"))
             self.surprise_music_list.append(
                 (f"/home/siwon/dev/smooth/data/music/7/{i}.mp3"))
-
+            
         self.music_timer = None
-
         self.musicison = False
         self.music_list = self.neutral_music_list
         self.music_index = 0
@@ -119,7 +120,6 @@ class WindowClass(QMainWindow, from_class):
         self.stopped_position = 0
         self.current_position = 0
         self.emotion_music_list = self.neutral_music_list
-
         self.MusicSlider.setDisabled(True)
 
     def init_connections(self):
@@ -133,6 +133,7 @@ class WindowClass(QMainWindow, from_class):
         self.btnPreviousMusic.clicked.connect(self.btnPreviousMusic_clicked)
         self.btnGoMusic.clicked.connect(self.btnGoMusic_clicked)
         self.btnBackMusic.clicked.connect(self.btnBackMusic_clicked)
+        
 
     def getQImage(self, frame):
         height, width, channel = frame.shape
@@ -196,8 +197,7 @@ class WindowClass(QMainWindow, from_class):
         h, w, c = image.shape
         qImg = QImage(image.data, w, h, w * c, QImage.Format.Format_RGB888)
         self.pixmap = self.pixmap.fromImage(qImg)
-        self.pixmap = self.pixmap.scaled(
-            self.label.width(), self.label.height())
+        self.pixmap = self.pixmap.scaled(self.label.width(), self.label.height())
         self.label.setPixmap(self.pixmap)
 
     def emotion_detector(self, image):
@@ -244,19 +244,24 @@ class WindowClass(QMainWindow, from_class):
 
     def update_emotion_ui(self):
         emotions_data = {
-            'Anger': ('분노', 'rgb(255, 0, 0)', (255, 0, 0), 0),
-            'Contempt': ('경멸', 'rgb(255, 255, 0)', (255, 255, 0), 1),
-            'Disgust': ('혐오', 'rgb(0, 128, 0)', (0, 128, 0), 2),
-            'Fear': ('공포', 'rgb(0, 0, 255)', (0, 0, 255), 3),
-            'Happiness': ('행복', 'rgb(255, 192, 203)', (255, 192, 203), 4),
-            'Neutral': ('보통', 'rgb(128, 128, 128)', (128, 128, 128), 5),
-            'Sadness': ('슬픔', 'rgb(0, 255, 255)', (0, 255, 255), 6),
-            'Surprise': ('놀람', 'rgb(128, 0, 128)', (128, 0, 128), 7)
+            'Anger': ('분노', 'rgb(255, 0, 0)', (255, 0, 0), 0 ,0),
+            'Contempt': ('경멸', 'rgb(255, 255, 0)', (255, 255, 0), 1, 1),
+            'Disgust': ('혐오', 'rgb(0, 128, 0)', (0, 128, 0), 2, 2),
+            'Fear': ('공포', 'rgb(0, 0, 255)', (0, 0, 255), 3, 3),
+            'Happiness': ('행복', 'rgb(255, 192, 203)', (255, 192, 203), 4, 4),
+            'Neutral': ('보통', 'rgb(128, 128, 128)', (128, 128, 128), 5, 5),
+            'Sadness': ('슬픔', 'rgb(0, 255, 255)', (0, 255, 255), 6, 6),
+            'Surprise': ('놀람', 'rgb(128, 0, 128)', (128, 0, 128), 7, 7)
         }
         if self.emotion_mean in emotions_data:
-            emotion_text, color, rgb, music_index = emotions_data[self.emotion_mean]
+            emotion_text, color, rgb, music_index, emotion_index = emotions_data[self.emotion_mean]
             self.emotion_edt.setStyleSheet(f"color: {color};")
-            self.colorUpdate(rgb[0], rgb[1], rgb[2], 1)
+            
+            if self.selected_color is None:
+                self.colorUpdate(rgb[0], rgb[1], rgb[2], 1, emotion_index)
+            else:
+                self.colorUpdate(self.selected_color[0], self.selected_color[1], self.selected_color[2], 0, emotion_index)
+            
             self.musicUpdate(music_index)
             self.emotion_edt.setText(emotion_text)
 
@@ -264,12 +269,13 @@ class WindowClass(QMainWindow, from_class):
         color = QColorDialog.getColor()
         if color.isValid():
             self.pickerModeOn = True
-            self.btnColorPicker.setStyleSheet(
-                "background-color: {}".format(color.name()))
+            self.btnColorPicker.setStyleSheet("background-color: {}".format(color.name()))
             r, g, b = color.getRgb()[:3]
+            self.selected_color = (r, g, b)
             self.colorUpdate(r, g, b, 0)
 
-    def colorUpdate(self, r, g, b, mode=1):
+
+    def colorUpdate(self, r, g, b, mode=1, emotion=8):
         self.emotion_r = r
         self.emotion_g = g
         self.emotion_b = b
@@ -278,10 +284,10 @@ class WindowClass(QMainWindow, from_class):
             self.R_led_edt.setText(str(r))
             self.G_led_edt.setText(str(g))
             self.B_led_edt.setText(str(b))
-            self.sendRGB(r, g, b)
+            self.sendRGB(r, g, b, emotion)
 
-    def sendRGB(self, r, g, b):
-        data = self.format.pack(r, g, b)
+    def sendRGB(self, r, g, b, emotion=8):
+        data = self.format.pack(r, g, b, emotion)
         self.sock.send(data)
 
     def btnColorModeFalse_clicked(self):
@@ -294,8 +300,7 @@ class WindowClass(QMainWindow, from_class):
             self.happy_music_list, self.neutral_music_list,
             self.sad_music_list, self.surprise_music_list
         ]
-        self.emotion_music_list = emotion_music_lists[emotion] if 0 <= emotion < len(
-            emotion_music_lists) else self.neutral_music_list
+        self.emotion_music_list = emotion_music_lists[emotion] if 0 <= emotion < len(emotion_music_lists) else self.neutral_music_list
 
     def emotion_edt_changed(self):
         self.music_list[self.music_index + 1:] = self.emotion_music_list
@@ -305,9 +310,7 @@ class WindowClass(QMainWindow, from_class):
     def update_MusicSlider(self):
         if pygame.mixer.music.get_busy():
             self.current_position += 1
-
         self.MusicSlider.setValue(self.current_position)
-
         if not pygame.mixer.music.get_busy():
             self.music_timer.stop()
             self.music = self.next_music
@@ -323,17 +326,18 @@ class WindowClass(QMainWindow, from_class):
         self.MusicSlider.setMaximum(length)
         self.music_edt.setText(music)
         pygame.mixer.music.load(music)
-
         pygame.mixer.music.play(start=start_position)
         pygame.mixer.music.set_volume(1)
-
         if self.music_timer is not None:
             self.music_timer.stop()
-
         self.music_timer = QTimer()
         self.music_timer.timeout.connect(self.update_MusicSlider)
         self.music_timer.start(1000)
 
+        if len(self.music_list) > 10:
+            self.music_list = self.music_list[1:]
+            self.music_index -= 1
+        
         print('--------------------------')
         for i, m in enumerate(self.music_list):
             print(m + " (현재 재생중)" if i == self.music_index else m)
