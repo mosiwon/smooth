@@ -14,6 +14,7 @@ class Ui_Dialog(object):
         Dialog.setObjectName("Dialog")
         Dialog.resize(640, 480)
         self.groupBox = QtWidgets.QGroupBox(parent=Dialog)
+
         self.groupBox.setGeometry(QtCore.QRect(430, 10, 191, 181))
         self.groupBox.setTitle("")
         self.groupBox.setObjectName("groupBox")
@@ -77,6 +78,7 @@ class Ui_Dialog(object):
         self.music_edt.setReadOnly(True)
         self.music_edt.setObjectName("music_edt")
         self.label = QtWidgets.QLabel(parent=Dialog)
+
         self.label.setGeometry(QtCore.QRect(10, 20, 401, 391))
         self.label.setFrameShape(QtWidgets.QFrame.Shape.Panel)
         self.label.setText("")
