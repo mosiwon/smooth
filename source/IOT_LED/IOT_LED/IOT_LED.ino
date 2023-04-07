@@ -1,3 +1,7 @@
+int led_R = 19;
+int led_G = 18;
+int led_B = 17;
+
 #include <WiFi.h>
 
 const char *ssid = "ANE_Class2_2G";
@@ -16,11 +20,15 @@ void setup() {
     Serial.print(".");
   }
   Serial.println();
-
   Serial.print("IP Address : ");
   Serial.println(WiFi.localIP());
 
-  server.begin();
+
+  pinMode(led_R,OUTPUT);
+  pinMode(led_G,OUTPUT);
+  pinMode(led_B,OUTPUT);
+  Serial.begin();
+
 }
 
 void loop() {
