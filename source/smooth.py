@@ -290,13 +290,6 @@ class WindowClass(QMainWindow, from_class):
         data = self.format.pack(r, g, b, emotion)
         self.sock.send(data)
 
-    def sendRGB(self, r, g, b):
-        color_str = "R{}G{}B{}".format(r, g, b)
-        color_bytes = color_str.encode('ascii') # 문자열을 바이트 형태로 변환
-        self.sock.send(color_bytes)
-        print('send: {}'.format(color_str))
-
-
     def btnColorModeFalse_clicked(self):
         self.pickerModeOn = False
 
