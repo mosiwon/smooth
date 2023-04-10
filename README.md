@@ -3,6 +3,8 @@
 ### 스마트 무드등 스피커 (스무스) 는 사용자의 얼굴 표정을 분석하여 해당 감정에 맞는 음악과 LED색상을 자동으로 변경해주는 어플리케이션 입니다.
 
 ---
+![20230409_153023](https://user-images.githubusercontent.com/61589097/230812177-1df3f1f7-cdd2-4abc-a407-f7cb1571fe81.jpg)
+---
 
 - ## 기능
 
@@ -41,3 +43,7 @@
   - HSEmotionRecognizer
   - PyGame
   - Mutagen
+
+---
+
+Link: [https://youtu.be/1LblZCtIPxc](https://youtu.be/1LblZCtIPxc)
