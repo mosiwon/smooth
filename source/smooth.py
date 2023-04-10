@@ -75,7 +75,7 @@ class WindowClass(QMainWindow, from_class):
         self.fer = HSEmotionRecognizer(model_name=self.model_name)
         self.recent_scores = deque(maxlen=15)
         self.emotion_mean = None
-        self.emotion_queue = deque(maxlen=310)
+        self.emotion_queue = deque(maxlen=350)
 
         self.emotion_edt.setText("보통")
         
@@ -279,7 +279,6 @@ class WindowClass(QMainWindow, from_class):
         self.emotion_r = r
         self.emotion_g = g
         self.emotion_b = b
-        print(r,g,b)
 
         if mode == 1 and not self.pickerModeOn or mode == 0 and self.pickerModeOn:
             self.R_led_edt.setText(str(r))
