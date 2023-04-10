@@ -75,7 +75,7 @@ class WindowClass(QMainWindow, from_class):
         self.fer = HSEmotionRecognizer(model_name=self.model_name)
         self.recent_scores = deque(maxlen=15)
         self.emotion_mean = None
-        self.emotion_queue = deque(maxlen=500)
+        self.emotion_queue = deque(maxlen=310)
 
         self.emotion_edt.setText("보통")
         
@@ -279,6 +279,7 @@ class WindowClass(QMainWindow, from_class):
         self.emotion_r = r
         self.emotion_g = g
         self.emotion_b = b
+        print(r,g,b)
 
         if mode == 1 and not self.pickerModeOn or mode == 0 and self.pickerModeOn:
             self.R_led_edt.setText(str(r))
@@ -291,8 +292,11 @@ class WindowClass(QMainWindow, from_class):
         self.sock.send(data)
 
     def btnColorModeFalse_clicked(self):
-        self.pickerModeOn = False
-
+        self.selected_color = None
+        self.update_emotion_ui()
+        self.pickerModeOn=False
+        print(self.emotion_mean)
+        
     def musicUpdate(self, emotion):
         emotion_music_lists = [
             self.angry_music_list, self.contempt_music_list,

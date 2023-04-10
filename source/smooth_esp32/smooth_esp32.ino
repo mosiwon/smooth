@@ -2,7 +2,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <ThreeWire.h>  
 #include <RtcDS1302.h>
-
+192.168.121.117
 const char *ssid = "siwonhotspot";
 const char *password = "00001234";
 int led_R = 19;
